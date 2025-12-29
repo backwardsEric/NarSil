@@ -1,0 +1,44 @@
+name: cmake-msvc
+
+on:
+  push:
+    branches: [ 'main', 'workflows-cmake-msvc' ]
+  pull_request:
+
+jobs:
+  build:
+    name: CMake with Visual Studio Generator
+    runs-on: windows-latest
+    steps:
+      - name: Clone Project
+        uses: actions/checkout@v4
+
+      - name: Build
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars32.bat"
+          mkdir build
+          chdir build
+          cmake -G "Visual Studio 17 2022" -A Win32 -DSUPPORT_WINDOWS_FRONTEND=ON -DSUPPORT_BUNDLED_PNG=ON ..
+          cmake --build .
+          cmake --build . -t alltests
+
+  nmake:
+    name: CMake with NMake Generator
+    runs-on: windows-latest
+    steps:
+      - name: Add nmake and compiler to PATH
+        uses: TheMrMilchmann/setup-msvc-dev@v3
+        with:
+          arch: x86
+
+      - name: Clone Project
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          mkdir build
+          chdir build
+          cmake -G "NMake Makefiles" -DSUPPORT_WINDOWS_FRONTEND=ON -DSUPPORT_BUNDLED_PNG=ON ..
+          cmake --build .
+          cmake --build . -t alltests
